@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="edu.dao.repository.SessionRepository">
+
+    <resultMap id = "userSession" type = "UserSession">
+        <result property = "sessionId" column = "java_session_id"/>
+        <result property = "creationTime" column = "creation_time"/>
+        <association property = "user" javaType = "User">
+            <id property = "id" column = "id" />
+            <result property = "firstName" column = "first_name" />
+            <result property = "lastName" column = "last_name" />
+            <result property = "patronymic" column = "patronymic" />
+            <result property = "login" column = "login" />
+            <result property = "password" column = "password" />
+            <result property = "userType" column = "user_type" />
+        </association>
+    </resultMap>
+
+
+    <select id="findSessionBySessionId" parameterType="map" resultMap="userSession">
+        SELECT
+            `user_id`, `java_session_id`, `creation_time`,
+            `user`.`id`, `user`.`first_name`, `user`.`last_name`,
+            `user`.`patronymic`, `user`.`user_type`,
+            `user`.`login`, `user`.`password`
+        FROM
+            `active_session`
+        INNER JOIN
+            `user` ON `active_session`.`user_id` = `user`.`id`
+        WHERE
+            `java_session_id` = #{SESSION_ID}
+    </select>
+
+    <select id="findSessionByUserId" parameterType="map" resultMap="userSession">
+        SELECT
+            `user_id`, `java_session_id`, `creation_time`,
+            `user`.`id`, `user`.`first_name`, `user`.`last_name`,
+            `user`.`patronymic`, `user`.`user_type`,
+            `user`.`login`, `user`.`password`
+        FROM
+            `active_session`
+        INNER JOIN
+            `user` ON `active_session`.`user_id` = `user`.`id`
+        WHERE
+            `user_id` = #{USER_ID}
+    </select>
+
+    <insert id="insertNewSession" parameterType="map">
+        INSERT INTO
+            `active_session`(`user_id`, `java_session_id`, `creation_time`)
+        VALUES
+            (#{SESSION.user.id}, #{SESSION.sessionId}, #{SESSION.creationTime})
+    </insert>
+
+    <insert id="insertNewSessionForTesting" parameterType="map">
+        INSERT INTO
+            `active_session`(`user_id`, `java_session_id`, `creation_time`)
+        VALUES
+            (#{USER_ID}, #{SESSION_ID}, #{SESSION_CREATION_TIME})
+    </insert>
+
+    <delete id="deleteUserOldSession" parameterType="map">
+        <![CDATA[
+            DELETE FROM
+                `active_session`
+            WHERE
+                DATE_ADD(`creation_time`, INTERVAL #{TIME_TO_LIVE} SECOND) < #{TIME_CHECK_AGAINST}
+        ]]>
+    </delete>
+
+    <delete id="deleteAllFromSessionTable">
+        DELETE FROM `active_session`
+    </delete>
+
+    <delete id="deleteSessionBySessionId">
+        DELETE FROM
+            `active_session`
+        WHERE
+            `java_session_id` = #{SESSION_ID}
+    </delete>
+
+    <delete id="deleteUserSessionByUserId">
+        DELETE FROM
+            `active_session`
+        WHERE
+            `user_id` = #{USER_ID}
+    </delete>
+
+
+</mapper>
+
+

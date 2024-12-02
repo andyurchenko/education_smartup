@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <properties resource='mysql.jdbc.properties' />
+
+    <settings>
+        <setting name="aggressiveLazyLoading" value="false" />
+        <setting name="logImpl" value="STDOUT_LOGGING"/>
+    </settings>
+
+    <typeAliases>
+        <typeAlias alias="User" type="edu.model.User"/>
+        <typeAlias alias="Administrator" type="edu.model.Administrator"/>
+        <typeAlias alias="Client" type="edu.model.Client"/>
+        <typeAlias alias="UserSession" type="edu.model.UserSession"/>
+        <typeAlias alias="Bus" type="edu.model.Bus"/>
+        <typeAlias alias="Trip" type="edu.model.Trip"/>
+        <typeAlias alias="Station" type="edu.model.additional.Station"/>
+        <typeAlias alias="Schedule" type="edu.model.additional.Schedule"/>
+        <typeAlias alias="Duration" type="java.time.Duration"/>
+        <typeAlias alias="Order" type="edu.model.Order"/>
+        <typeAlias alias="TripDate" type="edu.model.additional.TripDate"/>
+        <typeAlias alias="Passenger" type="edu.model.additional.Passenger"/>
+        <typeAlias alias="DurationTypeHandler" type="edu.dao.util.typehandler.DurationTypeHandler"/>
+    </typeAliases>
+
+    <typeHandlers>
+        <typeHandler handler="edu.dao.util.typehandler.DurationTypeHandler"/>
+        <package name="edu.dao.util.typehandler"/>
+    </typeHandlers>
+
+    <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="${jdbc.driver}"/>
+                <property name="url" value="${jdbc.url}"/>
+                <property name="username" value="${jdbc.username}"/>
+                <property name="password" value="${jdbc.password}"/>
+            </dataSource>
+        </environment>
+    </environments>
+    <mappers>
+        <mapper resource="edu/mybatis/mapper/AdministratorMapper.xml"/>
+        <mapper resource="edu/mybatis/mapper/UserMapper.xml"/>
+        <mapper resource="edu/mybatis/mapper/ClientMapper.xml"/>
+        <mapper resource="edu/mybatis/mapper/SessionMapper.xml"/>
+        <mapper resource="edu/mybatis/mapper/SettingsMapper.xml"/>
+        <mapper resource="edu/mybatis/mapper/DebugMapper.xml"/>
+        <mapper resource="edu/mybatis/mapper/BusMapper.xml"/>
+        <mapper resource="edu/mybatis/mapper/TripMapper.xml"/>
+        <mapper resource="edu/mybatis/mapper/StationMapper.xml"/>
+        <mapper resource="edu/mybatis/mapper/OrderMapper.xml"/>
+        <mapper resource="edu/mybatis/mapper/PassengerMapper.xml"/>
+        <mapper resource="edu/mybatis/mapper/PassengerSeatsMapper.xml"/>
+    </mappers>
+</configuration>

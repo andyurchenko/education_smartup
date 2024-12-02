@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="edu.dao.repository.UserRepository">
+
+    <resultMap id = "userMap" type = "User">
+        <id property = "id" column = "id" />
+        <result property = "firstName" column = "first_name" />
+        <result property = "lastName" column = "last_name" />
+        <result property = "patronymic" column = "patronymic" />
+        <result property = "login" column = "login" />
+        <result property = "password" column = "password" />
+        <result property = "userType" column = "user_type" />
+        <result property = "accountActive" column = "active_user" />
+        <discriminator javaType="edu.model.additional.UserType" column="user_type">
+            <case value="ADMIN" resultType="Administrator">
+                <result property="position" column="position" />
+            </case>
+            <case value="CLIENT" resultType="Client">
+                <result property="email" column="email" />
+                <result property="phone" column="phone" />
+            </case>
+        </discriminator>
+    </resultMap>
+
+    <select id="getUserById" parameterType="map" resultMap="userMap">
+        SELECT
+            `user`.`id`, `user`.`first_name`, `user`.`last_name`,
+            `user`.`patronymic`, `user`.`user_type`,
+            `user`.`login`, `user`.`password`, `user`.`active_user`,
+            `administrator`.`position`,
+            `client`.`email`, `client`.`phone`
+        FROM
+            `user`
+        LEFT JOIN
+            `administrator` ON `user`.id = `administrator`.user_id
+        LEFT JOIN
+            `client` ON `user`.id = `client`.user_id
+        WHERE
+            `user`.id = #{ID}
+    </select>
+
+    <select id="getUserBySessionId" parameterType="map" resultMap="userMap">
+        SELECT
+            `user`.`id`, `user`.`first_name`,
+            `user`.`last_name`, `user`.`patronymic`,
+            `user`.`user_type`, `user`.`login`,
+            `user`.`password`, `user`.`active_user`,
+            `administrator`.`position`,
+            `client`.`email`, `client`.`phone`
+        FROM
+            `active_session`
+        LEFT JOIN
+            `user` ON `active_session`.`user_id` = `user`.`id`
+        LEFT JOIN
+            `administrator` ON `user`.`id` = `administrator`.`user_id`
+        LEFT JOIN
+            `client` ON `user`.`id` = `client`.`user_id`
+        WHERE
+            `active_session`.`java_session_id` = #{SESSION_ID}
+    </select>
+
+    <select id="getUserByLogin" parameterType="map" resultMap="userMap">
+        SELECT
+            `user`.`id`, `user`.`first_name`, `user`.`last_name`,
+            `user`.`patronymic`, `user`.`user_type`,
+            `user`.`login`, `user`.`password`, `user`.`active_user`,
+            `administrator`.`position`,
+            `client`.`email`, `client`.`phone`
+        FROM
+            `user`
+        LEFT JOIN
+            `administrator` ON `user`.id = `administrator`.user_id
+        LEFT JOIN
+            `client` ON `user`.id = `client`.user_id
+        WHERE
+            UPPER(`user`.`login`) = UPPER(#{LOGIN})
+    </select>
+
+    <select id="getUserByLoginAndPasswordIfActive" parameterType="map" resultMap="userMap">
+        SELECT
+            `user`.`id`, `user`.`first_name`, `user`.`last_name`,
+            `user`.`patronymic`, `user`.`user_type`,
+            `user`.`login`, `user`.`password`, `user`.`active_user`,
+            `administrator`.`position`,
+            `client`.`email`, `client`.`phone`
+        FROM
+            `user`
+        LEFT JOIN
+            `administrator` ON `user`.id = `administrator`.user_id
+        LEFT JOIN
+            `client` ON `user`.id = `client`.user_id
+        WHERE
+            UPPER(`user`.`login`) = UPPER(#{LOGIN}) AND `user`.`password` = #{PASSWORD} AND `user`.`active_user` = TRUE
+    </select>
+
+    <insert id="insertNewUser" parameterType = "map" useGeneratedKeys = "true" keyProperty = "id">
+        INSERT INTO
+            `user` (`first_name`, `last_name`, `patronymic`, `user_type`, `login`, `password`)
+        VALUES
+            (#{USER.firstName}, #{USER.lastName}, #{USER.patronymic}, #{USER.userType}, #{USER.login}, #{USER.password})
+    </insert>
+
+    <delete id="deleteAllFromUserTable">
+        DELETE FROM `user`
+    </delete>
+
+    <delete id="deleteUserById">
+        DELETE FROM `user` WHERE `user`.`id` = #{USER_ID}
+    </delete>
+
+    <update id="inactivateUser" parameterType="map">
+        UPDATE
+            `user`
+        SET
+            `active_user` = FALSE
+        WHERE
+            `id` = #{USER_ID}
+    </update>
+
+    <update id="activeUser" parameterType="map">
+        UPDATE
+            `user`
+        SET
+            `active_user` = TRUE
+        WHERE
+            `id` = #{USER_ID}
+    </update>
+
+</mapper>

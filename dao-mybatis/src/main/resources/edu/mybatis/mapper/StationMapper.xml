@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="edu.dao.repository.StationRepository">
+
+    <resultMap id = "stationMap" type = "Station">
+        <id property = "id" column = "id"/>
+        <result property = "name" column = "name"/>
+    </resultMap>
+
+    <select id="selectStationByName" parameterType="map" resultMap="stationMap">
+        SELECT
+            `station`.`id`, `station`.`name`
+        FROM
+            `station`
+        WHERE
+            `name` = #{STATION_NAME}
+    </select>
+
+    <select id="selectStationById" parameterType="map" resultMap="stationMap">
+        SELECT
+            `station`.`id`, `station`.`name`
+        FROM
+            `station`
+        WHERE
+            `id` = #{STATION_ID}
+    </select>
+
+    <insert id="insertStation" parameterType="map" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO
+            `station`(`name`)
+        VALUES
+            (#{STATION.name})
+    </insert>
+
+    <delete id="deleteStationById" parameterType="map">
+        DELETE FROM
+            `station`
+        WHERE `id` = #{STATION_ID}
+    </delete>
+
+    <delete id="deleteStationByName" parameterType="map">
+        DELETE FROM
+            `station`
+        WHERE `name` = #{STATION_NAME}
+    </delete>
+
+    <update id="updateStation" parameterType="map">
+        UPDATE
+            `station`
+        SET
+            `name` = #{STATION.name}
+        WHERE
+            `station`.`id` = #{STATION.id}
+    </update>
+
+</mapper>

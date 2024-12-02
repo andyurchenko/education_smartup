@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="edu.dao.repository.PassengerSeatsRepository">
+
+    <select id="selectFreePassengerSeatsByOrderId" parameterType="map" resultType="java.lang.Integer" >
+        SELECT
+            `passenger_seat_position_number`
+        FROM
+            `passenger_seats_in_bus`
+            INNER JOIN `trip_date` ON  `passenger_seats_in_bus`.`trip_date_id` = `trip_date`.`id`
+            INNER JOIN `trip` ON `trip_date`.`trip_id` = `trip`.`id`
+            INNER JOIN `order` ON `trip_date`.`id` = `order`.`trip_date_id`
+        WHERE
+            `order`.`id` = #{ORDER_ID}
+            AND `passenger_seats_in_bus`.`passenger_id` IS NULL
+            AND `trip`.`approved` = TRUE
+    </select>
+
+    <select id="selectPassengerSeatNumberByPassengerId" parameterType="map" resultType="java.lang.Integer">
+        SELECT
+            `passenger_seat_position_number`
+        FROM
+            `passenger_seats_in_bus`
+            INNER JOIN `trip_date` ON  `passenger_seats_in_bus`.`trip_date_id` = `trip_date`.`id`
+            INNER JOIN `order` ON `trip_date`.`id` = `order`.`trip_date_id`
+        WHERE
+            `order`.`id` = #{ORDER_ID} AND `passenger_id` = #{PASSENGER_ID}
+    </select>
+
+    <insert id="insertCountOfSeatsInBus" parameterType="map">
+        INSERT INTO
+            `trip_date_free_seats_counter`(`trip_date_id`, `free_seats_counter`)
+        VALUES
+        <foreach item="dateFromList" collection="TRIP_DATES" separator=",">
+            (#{dateFromList.id}, #{BUS_PASSENGER_SEATS_NUMBER})
+        </foreach>
+    </insert>
+
+    <insert id="insertPassengerSeatsPositionNumberInBus" parameterType="map">
+        INSERT INTO
+            `passenger_seats_in_bus`(`trip_date_id`, `passenger_seat_position_number`)
+        VALUES
+        <foreach item="value_list" index="key" collection="map" separator=",">
+            <foreach item="value" collection="value_list" separator=",">
+                (#{key}, #{value})
+            </foreach>
+        </foreach>
+    </insert>
+
+    <update id="decrementPassengersSeatsCounter">
+        UPDATE
+            `trip_date_free_seats_counter`
+        SET
+            `free_seats_counter` = `free_seats_counter` - #{SEATS_TO_BOOK}
+        WHERE
+            `trip_date_id` = #{TRIP_DATE_ID} AND `free_seats_counter` >= #{SEATS_TO_BOOK}
+    </update>
+
+    <update id="incrementPassengersSeatsCounter">
+        UPDATE
+            `trip_date_free_seats_counter`
+        SET
+            `free_seats_counter` = `free_seats_counter` + #{SEATS_TO_FREE}
+        WHERE
+            `trip_date_id` = #{TRIP_DATE_ID}
+    </update>
+
+    <update id="bookPassengersSeatInBus">
+        UPDATE
+            `passenger_seats_in_bus`
+            INNER JOIN `trip_date` ON  `passenger_seats_in_bus`.`trip_date_id` = `trip_date`.`id`
+            INNER JOIN `order` ON `trip_date`.`id` = `order`.`trip_date_id`
+            INNER JOIN `trip` ON `trip_date`.`trip_id` = `trip`.`id`
+        SET
+            `passenger_id` = #{PASSENGER_ID}
+        WHERE
+            `passenger_id` IS NULL
+            AND `order`.`id` = #{ORDER_ID}
+            AND `passenger_seat_position_number` = #{SEAT_POSITION_TO_BOOK}
+            AND `trip`.`approved` = TRUE
+    </update>
+
+    <update id="freePassengerSeatTakenBefore">
+        UPDATE
+            `passenger_seats_in_bus`
+            INNER JOIN `trip_date` ON  `passenger_seats_in_bus`.`trip_date_id` = `trip_date`.`id`
+            INNER JOIN `order` ON `trip_date`.`id` = `order`.`trip_date_id`
+        SET
+            `passenger_id` = NULL
+
+        WHERE
+            `passenger_id` = #{PASSENGER_ID}
+            AND `order`.`id` = #{ORDER_ID}
+            AND `passenger_seat_position_number` = #{SEAT_POSITION_TO_FREE}
+    </update>
+
+</mapper>

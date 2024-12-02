@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="edu.dao.repository.OrderRepository">
+
+    <resultMap id = "orderMap" type = "Order">
+        <id property = "id" column = "order_id"/>
+        <result property="totalPrice" column="order_total_price"/>
+        <association property="tripDate" javaType="TripDate" resultMap="tripDateMap"/>
+        <association property="client" javaType="Client" resultMap="clientMap"/>
+        <association property="trip" javaType="Trip" resultMap="tripMap"/>
+
+        <collection property="passengers" javaType="ArrayList" ofType="Passenger" resultMap="passengerMap"/>
+    </resultMap>
+
+    <resultMap id="passengerMap" type="Passenger">
+        <id property="id" column="passenger_id"/>
+        <result property="firstName" column="passenger_first_name"/>
+        <result property="lastName" column="passenger_last_name"/>
+        <result property="passport" column="passenger_passport"/>
+    </resultMap>
+
+    <resultMap id = "clientMap" type = "Client">
+        <id property = "id" column = "client_id" />
+        <result property = "firstName" column = "client_first_name" />
+        <result property = "lastName" column = "client_last_name" />
+        <result property = "patronymic" column = "client_patronymic" />
+        <result property = "userType" column = "client_user_type" />
+        <result property = "login" column = "client_login" />
+        <result property = "password" column = "client_password" />
+        <result property = "accountActive" column = "client_active_user" />
+        <result property = "email" column="client_email" />
+        <result property = "phone" column = "client_phone" />
+    </resultMap>
+
+    <resultMap id = "tripMap" type = "Trip">
+        <id property = "id" column = "trip_id"/>
+        <result property = "start" column = "trip_start"/>
+        <result property = "duration" column = "trip_duration" javaType="java.time.Duration" jdbcType="TIME" typeHandler="DurationTypeHandler"/>
+        <result property = "price" column = "trip_price"/>
+        <result property = "approved" column = "trip_approved"/>
+        <result property = "fromStation.id" column = "from_station_id"/>
+        <result property = "fromStation.name" column = "from_station_name"/>
+        <result property = "toStation.id" column = "to_station_id"/>
+        <result property = "toStation.name" column = "to_station_name"/>
+        <association property="schedule" javaType="Schedule">
+            <result property="fromDate" column="schedule_from_date"/>
+            <result property="toDate" column="schedule_to_date"/>
+            <result property="period" column="schedule_period"/>
+        </association>
+        <association property="bus" javaType="Bus">
+            <id property="id" column="bus_id"/>
+            <result property="brandName" column="bus_brand_name"/>
+            <result property="placeCount" column="bus_place_count"/>
+        </association>
+        <collection property="tripDates" javaType="ArrayList" ofType="TripDate">
+            <id property="id" column="trip_date_id"/>
+            <result property="date" column="trip_date"/>
+            <result property="freePassengerSeatsCounter" column="trip_date_free_seats_counter"/>
+            <association property="trip" resultMap="tripMap"/>
+        </collection>
+    </resultMap>
+
+    <resultMap id="tripDateMap" type="TripDate">
+        <id property="id" column="trip_date_id"/>
+        <result property="date" column="trip_date"/>
+        <result property="freePassengerSeatsCounter" column="trip_date_free_seats_counter"/>
+        <association property="trip" resultMap="tripMap" />
+    </resultMap>
+
+
+
+    <insert id="insertOrder" parameterType="map" useGeneratedKeys="true" keyProperty="ORDER.id">
+        INSERT INTO
+        `order`(`trip_date_id`, `total_price`, `user_id`)
+        VALUES (#{TRIP_DATE.id}, #{ORDER.totalPrice}, #{ORDER.client.id});
+    </insert>
+
+    <select id="getOrderById" parameterType="map" resultMap="orderMap">
+        SELECT
+            `order`.`id` AS `order_id`,
+            `order`.`trip_date_id` AS `trip_date_id`,
+            `order`.`total_price` AS `order_total_price`,
+            `order`.`user_id` AS `client_id`,
+            `user`.`first_name` AS `client_first_name`,
+            `user`.`last_name` AS `client_last_name`,
+            `user`.`patronymic` AS `client_patronymic`,
+            `user`.`user_type` AS `client_user_type`,
+            `user`.`login` AS `client_login`,
+            `user`.`password` AS `client_password`,
+            `user`.`active_user` AS `client_active_user`,
+            `client`.`email` AS `client_email`,
+            `client`.`phone` AS `client_phone`,
+            `trip_date`.`date` AS `trip_date`,
+            `trip_date_free_seats_counter`.`free_seats_counter` AS `trip_date_free_seats_counter`,
+            `trip`.`id` AS `trip_id`,
+            `trip`.`bus_id` AS `bus_id`,
+            `bus`.`brand_name` AS `bus_brand_name`,
+            `bus`.`place_count` AS `bus_place_count`,
+            `trip`.`from_station_id` AS `from_station_id`,
+            `trip`.`to_station_id` AS `to_station_id`,
+            (SELECT `name` FROM `station` WHERE `station`.`id` = `from_station_id`) AS `from_station_name`,
+            (SELECT `name` FROM `station` WHERE `station`.`id` = `to_station_id`) AS `to_station_name`,
+            `trip`.`start` AS `trip_start`,
+            `trip`.`duration` AS `trip_duration`,
+            `trip`.`price` AS `trip_price`,
+            `trip`.`approved` AS `trip_approved`,
+            `trip_schedule`.`from_date` AS `schedule_from_date`,
+            `trip_schedule`.`to_date` AS `schedule_to_date`,
+            `trip_schedule`.`period` AS `schedule_period`,
+            `passenger`.`id` AS `passenger_id`,
+            `passenger`.`first_name` AS `passenger_first_name`,
+            `passenger`.`last_name` AS `passenger_last_name`,
+            `passenger`.`passport` AS `passenger_passport`
+        FROM
+            `order`
+            INNER JOIN `user` ON `order`.`user_id` = `user`.`id`
+            INNER JOIN `client` ON `user`.`id` = `client`.`user_id`
+            INNER JOIN `trip_date` ON `order`.`trip_date_id` = `trip_date`.`id`
+            INNER JOIN `trip_date_free_seats_counter` ON `trip_date`.`id` = `trip_date_free_seats_counter`.`trip_date_id`
+            INNER JOIN `trip` ON `trip`.`id` = `trip_date`.`trip_id`
+            INNER JOIN `bus` ON `trip`.`bus_id` = `bus`.`id`
+            INNER JOIN `trip_schedule` ON `trip`.`id` = `trip_schedule`.`trip_id`
+            INNER JOIN `passenger` ON `order`.`id` = `passenger`.`order_id`
+        WHERE
+            `order`.`id` = #{ORDER_ID}
+    </select>
+
+    <select id="selectTripDateIdOfOrderByOrderId" parameterType="map" resultType="Long">
+        SELECT
+            `trip_date_id`
+        FROM
+            `order`
+        WHERE
+            `order`.`id` = #{ORDER_ID}
+    </select>
+
+    <select id="getNumberOfPassengersInOrder" parameterType="map" resultType="Integer">
+        SELECT
+            COUNT(`passenger`.`id`)
+        FROM
+            `order`
+            INNER JOIN `passenger` ON `order`.`id` = `passenger`.`order_id`
+        WHERE
+            `order`.`id` = #{ORDER_ID}
+    </select>
+
+    <select id="selectClientIdOfOrder" parameterType="map" resultType="Long">
+        SELECT
+            `user_id`
+        FROM
+            `order`
+        WHERE
+            `order`.`id` = #{ORDER_ID}
+    </select>
+
+    <select id="getOrdersByParams" parameterType="map" resultMap="orderMap" >
+        SELECT
+            `order_id`, `order_total_price`,
+            `client_id`, `client_first_name`, `client_last_name`, `client_patronymic`, `client_user_type`, `client_login`, `client_password`, `client_active_user`, `client_email`, `client_phone`,
+            `trip_id`, `trip_start`, `trip_duration`, `trip_price`, `trip_approved`,
+            `schedule_from_date`, `schedule_to_date`, `schedule_period`,
+            `trip_date`, `trip_date_id`,
+            `trip_date_free_seats_counter`,
+            `bus_id`, `bus_brand_name`, `bus_place_count`,
+            `from_station_id`, `from_station_name`, `to_station_id`, `to_station_name`,
+            `passenger_id`, `passenger_first_name`, `passenger_last_name`, `passenger_passport`
+        FROM (
+            SELECT
+            `order`.`id` AS `order_id`,
+            `order`.`trip_date_id` AS `trip_date_id`,
+            `order`.`total_price` AS `order_total_price`,
+            `order`.`user_id` AS `client_id`,
+            `user`.`first_name` AS `client_first_name`,
+            `user`.`last_name` AS `client_last_name`,
+            `user`.`patronymic` AS `client_patronymic`,
+            `user`.`user_type` AS `client_user_type`,
+            `user`.`login` AS `client_login`,
+            `user`.`password` AS `client_password`,
+            `user`.`active_user` AS `client_active_user`,
+            `client`.`email` AS `client_email`,
+            `client`.`phone` AS `client_phone`,
+            `trip_date`.`date` AS `trip_date`,
+            `trip_date_free_seats_counter`.`free_seats_counter` AS `trip_date_free_seats_counter`,
+            `trip`.`id` AS `trip_id`,
+            `trip`.`bus_id` AS `bus_id`,
+            `bus`.`brand_name` AS `bus_brand_name`,
+            `bus`.`place_count` AS `bus_place_count`,
+            `trip`.`from_station_id` AS `from_station_id`,
+            `trip`.`to_station_id` AS `to_station_id`,
+            (SELECT `name` FROM `station` WHERE `station`.`id` = `from_station_id`) AS `from_station_name`,
+            (SELECT `name` FROM `station` WHERE `station`.`id` = `to_station_id`) AS `to_station_name`,
+            `trip`.`start` AS `trip_start`,
+            `trip`.`duration` AS `trip_duration`,
+            `trip`.`price` AS `trip_price`,
+            `trip`.`approved` AS `trip_approved`,
+            `trip_schedule`.`from_date` AS `schedule_from_date`,
+            `trip_schedule`.`to_date` AS `schedule_to_date`,
+            `trip_schedule`.`period` AS `schedule_period`,
+            `passenger`.`id` AS `passenger_id`,
+            `passenger`.`first_name` AS `passenger_first_name`,
+            `passenger`.`last_name` AS `passenger_last_name`,
+            `passenger`.`passport` AS `passenger_passport`
+        FROM
+            `order`
+            INNER JOIN `user` ON `order`.`user_id` = `user`.`id`
+            INNER JOIN `client` ON `user`.`id` = `client`.`user_id`
+            INNER JOIN `trip_date` ON `order`.`trip_date_id` = `trip_date`.`id`
+            INNER JOIN `trip_date_free_seats_counter` ON `trip_date`.`id` = `trip_date_free_seats_counter`.`trip_date_id`
+            INNER JOIN `trip` ON `trip`.`id` = `trip_date`.`trip_id`
+            INNER JOIN `bus` ON `trip`.`bus_id` = `bus`.`id`
+            INNER JOIN `trip_schedule` ON `trip`.`id` = `trip_schedule`.`trip_id`
+            INNER JOIN `passenger` ON `order`.`id` = `passenger`.`order_id`
+        ) AS inner_query
+        <where>
+            <if test="SEARCH_PARAMS.busName != null">
+                AND `inner_query`.`bus_brand_name` = #{SEARCH_PARAMS.busName}
+            </if>
+            <if test="SEARCH_PARAMS.fromStation != null">
+                AND `inner_query`.`from_station_name` = #{SEARCH_PARAMS.fromStation}
+            </if>
+            <if test="SEARCH_PARAMS.toStation != null">
+                AND `inner_query`.`to_station_name` = #{SEARCH_PARAMS.toStation}
+            </if>
+            <if test="SEARCH_PARAMS.fromDate != null">
+                AND `trip_date` >= #{SEARCH_PARAMS.fromDate}
+            </if>
+            <if test="SEARCH_PARAMS.toDate != null">
+                <![CDATA[
+                    AND `trip_date` <= #{SEARCH_PARAMS.toDate}
+                ]]>
+            </if>
+            <if test="SEARCH_PARAMS.clientId != null">
+                AND `inner_query`.`user_id` = #{SEARCH_PARAMS.clientId}
+            </if>
+        </where>
+    </select>
+
+    <delete id="deleteOrderById" parameterType="map">
+        DELETE FROM `order` WHERE `order`.`id` = #{ORDER_ID}
+    </delete>
+
+</mapper>

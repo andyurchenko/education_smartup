@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="edu.dao.repository.AdministratorRepository">
+
+    <resultMap id = "adminMap" type = "Administrator">
+        <id property = "id" column = "id" />
+        <result property = "firstName" column = "first_name" />
+        <result property = "lastName" column = "last_name" />
+        <result property = "patronymic" column = "patronymic" />
+        <result property = "login" column = "login" />
+        <result property = "password" column = "password" />
+        <result property = "userType" column = "user_type" />
+        <result property="position" column="position" />
+    </resultMap>
+    
+
+    <select id="getAdministratorById" parameterType="long" resultMap="adminMap">
+        SELECT
+            `user`.`id`,
+            `user`.`first_name`,
+            `user`.`last_name`,
+            `user`.`patronymic`,
+            `user`.`user_type`,
+            `user`.`login`,
+            `user`.`password`,
+            `administrator`.`position`
+        FROM
+            `user`
+        LEFT JOIN
+            `administrator` ON `user`.id = `administrator`.user_id
+        WHERE
+            `user`.id = #{ID}
+    </select>
+
+    <select id="getAdministratorCount" resultType="integer">
+        SELECT
+            count(*)
+        FROM
+            `user`
+        WHERE
+            `user`.`user_type` = "ADMIN"
+    </select>
+
+    <insert id="insertNewAdministrator" parameterType="map">
+        INSERT INTO
+            `administrator` (`user_id`, `position`)
+        VALUES
+            (#{ADMINISTRATOR.id}, #{ADMINISTRATOR.position})
+    </insert>
+
+    <delete id="deleteAllFromAdministratorTable">
+        DELETE FROM `administrator`
+    </delete>
+
+    <update id="updateAdministratorInfo" parameterType="map">
+        UPDATE
+            `user`
+        SET
+            `user`.`first_name` = #{ADMINISTRATOR.firstName},
+            `user`.`last_name` = #{ADMINISTRATOR.lastName},
+            `user`.`patronymic` = #{ADMINISTRATOR.patronymic},
+            `user`.`password` = #{ADMINISTRATOR.password}
+        WHERE
+            `user`.`id` = #{ADMINISTRATOR.id}
+        ;
+        UPDATE
+            `administrator`
+        SET
+            `administrator`.`position` = #{ADMINISTRATOR.position}
+        WHERE
+            `administrator`.`user_id` = #{ADMINISTRATOR.id}
+        ;
+    </update>
+
+</mapper>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="edu.dao.repository.ClientRepository">
+
+    <resultMap id = "clientMap" type = "Client">
+        <id property = "id" column = "id" />
+        <result property = "firstName" column = "first_name" />
+        <result property = "lastName" column = "last_name" />
+        <result property = "patronymic" column = "patronymic" />
+        <result property = "userType" column = "user_type" />
+        <result property="email" column="email" />
+        <result property="phone" column="phone" />
+    </resultMap>
+
+    <select id="getAllClients" resultMap="clientMap">
+        SELECT
+            `user`.`id`, `user`.`first_name`, `user`.`last_name`, `user`.`patronymic`, `user`.`user_type`,
+            `client`.`email`, `client`.`phone`
+        FROM
+            `user`
+        LEFT JOIN
+            `client` ON `user`.`id` = `client`.`user_id`
+        WHERE
+            `user`.`user_type` = "CLIENT"
+    </select>
+
+    <insert id="insertNewClient" parameterType = "map" useGeneratedKeys = "true" keyProperty = "id">
+        INSERT INTO
+            `client` (`user_id`, `email`, `phone`)
+        VALUES
+            (#{CLIENT.id}, #{CLIENT.email}, #{CLIENT.phone})
+    </insert>
+
+    <update id="updateClientInfo" parameterType="map">
+        UPDATE
+            `user`
+        SET
+            `user`.`first_name` = #{CLIENT.firstName},
+            `user`.`last_name` = #{CLIENT.lastName},
+            `user`.`patronymic` = #{CLIENT.patronymic},
+            `user`.`password` = #{CLIENT.password}
+        WHERE
+            `user`.`id` = #{CLIENT.id}
+        ;
+        UPDATE
+            `client`
+        SET
+            `client`.`email` = #{CLIENT.email},
+            `client`.`phone` = #{CLIENT.phone}
+        WHERE
+            `client`.`user_id` = #{CLIENT.id}
+        ;
+    </update>
+
+    <delete id="deleteAllFromClientTable">
+        DELETE FROM `client`
+    </delete>
+
+</mapper>

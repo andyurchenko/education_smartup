@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="edu.dao.repository.PassengerRepository">
+
+    <resultMap id = "passengerMap" type = "Passenger">
+        <id property = "id" column = "id"/>
+        <result property="firstName" column="first_name"/>
+        <result property="lastName" column="last_name"/>
+        <result property="passport" column="passport"/>
+    </resultMap>
+
+    <insert id="insertPassengers" parameterType="map" useGeneratedKeys="true" keyProperty="list.id">
+        INSERT INTO
+            `passenger`(`order_id`, `first_name`, `last_name`, `passport`)
+        VALUES
+        <foreach item="PASSENGER" collection="list" separator=",">
+            (#{ORDER_ID}, #{PASSENGER.firstName}, #{PASSENGER.lastName}, #{PASSENGER.passport})
+        </foreach>
+    </insert>
+    
+    <select id="selectPassengerByFullNameAndPassport" resultMap="passengerMap" parameterType="map">
+        SELECT
+            `id`, `first_name`, `last_name`, `passport`
+        FROM
+            `passenger`
+        WHERE
+            `first_name` = #{FIRST_NAME} AND `last_name` = #{LAST_NAME} AND `passport` = #{PASSPORT} AND `order_id` = #{ORDER_ID}
+    </select>
+
+</mapper>

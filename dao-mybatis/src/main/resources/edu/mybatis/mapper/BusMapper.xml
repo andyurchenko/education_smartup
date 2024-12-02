@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="edu.dao.repository.BusRepository">
+
+    <resultMap id = "busMap" type = "Bus">
+        <id property = "id" column = "id"/>
+        <result property = "brandName" column = "brand_name"/>
+        <result property = "placeCount" column = "place_count"/>
+    </resultMap>
+
+
+    <insert id="insertBus" parameterType="map" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO
+            `bus` (`brand_name`, `place_count`)
+        VALUES
+            (#{BUS.brandName}, #{BUS.placeCount})
+    </insert>
+    
+    <select id="selectAllBuses" resultMap="busMap">
+        SELECT
+            `brand_name`, `place_count`
+        FROM
+            `bus`
+    </select>
+
+    <select id="selectBusByBrandName" parameterType="map" resultMap="busMap">
+        SELECT
+            `id`, `brand_name`, `place_count`
+        FROM
+            `bus`
+        WHERE `brand_name` = #{BRAND_NAME}
+    </select>
+
+    <select id="selectBusById" resultMap="busMap">
+        SELECT
+            `id`, `brand_name`, `place_count`
+        FROM
+            `bus`
+        WHERE
+            `id` = #{BUS_ID}
+    </select>
+
+    <delete id="deleteBusById" parameterType="map">
+        DELETE FROM
+            `bus`
+        WHERE
+            `id` = #{BUS_ID}
+    </delete>
+
+    <delete id="deleteBusByBrandName" parameterType="map">
+        DELETE FROM
+            `bus`
+        WHERE
+            `brand_name` = #{BRAND_NAME}
+    </delete>
+
+    <update id="updateBus" parameterType="map">
+        UPDATE
+            `bus`
+        SET
+            `brand_name` = #{BUS.brandName},
+            `place_count` = #{BUS.placeCount}
+        WHERE
+            `id` = #{BUS.id}
+    </update>
+
+</mapper>

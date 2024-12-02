@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="edu.dao.repository.SettingsRepository">
+
+    <select id="getUserTypeBySessionId" parameterType="map" resultType="edu.model.additional.UserType">
+        SELECT
+            `user`.`user_type`
+        FROM
+            `active_session`
+        LEFT JOIN
+            `user` ON `active_session`.`user_id` = `user`.`id`
+        WHERE
+            `active_session`.`java_session_id` = #{SESSION_ID}
+    </select>
+
+</mapper>

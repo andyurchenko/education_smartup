@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="edu.dao.repository.DebugRepository">
+
+    <delete id="clearDataBase">
+        DELETE FROM `user`;
+        DELETE FROM `active_session`;
+        DELETE FROM `trip`;
+        DELETE FROM `bus`;
+        DELETE FROM `station`;
+        DELETE FROM `order`;
+    </delete>
+
+    <delete id="clearTripTable">
+        DELETE FROM `trip`
+    </delete>
+
+    <delete id="clearUserTable">
+        DELETE FROM `user`
+    </delete>
+
+    <delete id="clearActiveSessionTable">
+        DELETE FROM `active_session`
+    </delete>
+
+    <delete id="clearBusTable">
+        DELETE FROM `bus`
+    </delete>
+
+    <delete id="clearStationTable">
+        DELETE FROM `station`
+    </delete>
+
+
+</mapper>
